@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paparan Penyelia — Sistem Penyelenggaraan</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.8.0/dist/tabler-icons.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green:     #1D9E75;
+      --green-dk:  #0F6E56;
+      --green-lt:  #E1F5EE;
+      --red:       #E24B4A;
+      --red-lt:    #FCEBEB;
+      --amber:     #EF9F27;
+      --amber-lt:  #FAEEDA;
+      --blue:      #185FA5;
+      --blue-lt:   #E6F1FB;
+      --purple:    #3C3489;
+      --purple-lt: #EEEDFE;
+      --bg:        #F5F6F8;
+      --surface:   #FFFFFF;
+      --border:    #E2E5EA;
+      --text:      #1A1D23;
+      --muted:     #6B7280;
+      --faint:     #9CA3AF;
+      --sidebar-w: 220px;
+      --topbar-h:  54px;
+      --bottom-h:  56px;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); }
+
+    /* ─── SHELL ─── */
+    .shell { display: flex; height: 100vh; overflow: hidden; }
+
+    /* ─── SIDEBAR ─── */
+    .sidebar {
+      width: var(--sidebar-w); background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      flex-shrink: 0; z-index: 20; transition: transform .25s;
+    }
+    .sb-logo {
+      padding: 16px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .sb-logo-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--green-lt); display: flex; align-items: center; justify-content: center; color: var(--green); font-size: 18px; }
+    .sb-logo h1 { font-size: 13px; font-weight: 600; }
+    .sb-logo p  { font-size: 10px; color: var(--muted); }
+    .sb-user {
+      padding: 12px 14px; display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; flex-shrink: 0;
+    }
+    .av-sv { background: var(--green-lt);   color: var(--green-dk); }
+    .av-tc { background: var(--blue-lt);    color: var(--blue); }
+    .av-mg { background: var(--amber-lt);   color: #633806; }
+    .av-ad { background: var(--purple-lt);  color: var(--purple); }
+    .sb-user-info p    { font-size: 12px; font-weight: 500; }
+    .sb-user-info span { font-size: 10px; color: var(--muted); }
+    .sb-nav { flex: 1; overflow-y: auto; padding: 8px 0; }
+    .sb-sec { padding: 10px 14px 4px; font-size: 10px; color: var(--faint); text-transform: uppercase; letter-spacing: .5px; }
+    .sb-item {
+      display: flex; align-items: center; gap: 9px;
+      padding: 9px 14px; font-size: 13px; color: var(--muted);
+      cursor: pointer; border: none; background: none;
+      width: 100%; text-align: left; border-radius: 0;
+      transition: background .15s; font-family: inherit;
+    }
+    .sb-item:hover  { background: var(--bg); color: var(--text); }
+    .sb-item.active { background: var(--bg); color: var(--text); font-weight: 600; }
+    .sb-item i { font-size: 17px; flex-shrink: 0; }
+    .sb-item .cnt { margin-left: auto; background: var(--red); color: #fff; font-size: 10px; padding: 1px 6px; border-radius: 99px; }
+    .sb-foot { padding: 12px 14px; border-top: 1px solid var(--border); }
+    .sb-foot label { font-size: 10px; color: var(--faint); display: block; margin-bottom: 5px; }
+    .sb-foot select { width: 100%; font-size: 12px; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+
+    /* ─── MAIN ─── */
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+    .topbar {
+      height: var(--topbar-h); padding: 0 20px;
+      display: flex; align-items: center; gap: 10px;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .topbar-menu { display: none; background: none; border: none; font-size: 20px; cursor: pointer; padding: 6px; color: var(--text); }
+    .topbar h2 { font-size: 16px; font-weight: 600; flex: 1; }
+    .topbar-actions { display: flex; gap: 8px; }
+    .content { flex: 1; overflow-y: auto; padding: 20px; }
+
+    /* ─── BOTTOM NAV (mobile) ─── */
+    .bottom-nav {
+      display: none; position: fixed; bottom: 0; left: 0; right: 0;
+      height: var(--bottom-h); background: var(--surface);
+      border-top: 1px solid var(--border); z-index: 30;
+      justify-content: space-around; align-items: center;
+    }
+    .bn-item {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      padding: 6px 10px; border: none; background: none; cursor: pointer;
+      color: var(--faint); font-size: 9px; font-weight: 500; position: relative;
+    }
+    .bn-item i { font-size: 22px; }
+    .bn-item.active { color: var(--green); }
+    .bn-item .dot { position: absolute; top: 4px; right: 8px; width: 8px; height: 8px; background: var(--red); border-radius: 50%; border: 2px solid var(--surface); }
+
+    /* ─── OVERLAY ─── */
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 15; }
+    .overlay.show { display: block; }
+
+    /* ─── STATS ─── */
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .sc { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+    .sc .n { font-size: 24px; font-weight: 600; margin-bottom: 2px; }
+    .sc .l { font-size: 11px; color: var(--muted); }
+    .sc.red .n { color: var(--red); }
+    .sc.amber .n { color: var(--amber); }
+    .sc.green .n { color: var(--green); }
+
+    /* ─── FILTERS ─── */
+    .filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+    .filters select { font-size: 13px; padding: 7px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+    .filters button { margin-left: auto; }
+
+    /* ─── ADUAN CARDS ─── */
+    .aduan-list { display: flex; flex-direction: column; gap: 10px; }
+    .acard {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px 16px 16px 20px;
+      position: relative; overflow: hidden; transition: box-shadow .2s;
+    }
+    .acard:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+    .acard.flash { animation: flash 2.5s ease; }
+    @keyframes flash { 0% { background: var(--green-lt); } 100% { background: var(--surface); } }
+    .acard-strip { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; border-radius: 12px 0 0 12px; }
+    .strip-k { background: var(--red); }
+    .strip-t { background: var(--amber); }
+    .strip-s { background: #639922; }
+    .strip-r { background: var(--blue); }
+    .acard-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+    .acard-top h4 { font-size: 14px; font-weight: 600; flex: 1; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 600;
+    }
+    .badge.baru    { background: var(--amber-lt); color: #633806; }
+    .badge.prog    { background: var(--blue-lt);  color: #0C447C; }
+    .badge.selesai { background: var(--green-lt); color: #085041; }
+    .badge.new-pulse { animation: newpulse 1.5s ease 4; }
+    @keyframes newpulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+    .meta { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+    .tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 99px; font-size: 11px; background: var(--bg); color: var(--muted); }
+    .acard-desc { font-size: 13px; color: var(--muted); margin-bottom: 10px; line-height: 1.5; }
+    .acard-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+    .acard-footer-info { font-size: 11px; color: var(--faint); }
+    .acard-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    /* ─── BUTTONS ─── */
+    .btn {
+      padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--surface); font-size: 12px; cursor: pointer;
+      color: var(--text); display: inline-flex; align-items: center;
+      gap: 5px; font-weight: 500; transition: all .15s; font-family: inherit;
+    }
+    .btn:hover { background: var(--bg); }
+    .btn.pri  { background: var(--green); border-color: var(--green); color: #fff; }
+    .btn.pri:hover { background: var(--green-dk); }
+    .btn.warn { background: var(--amber-lt); border-color: var(--amber); color: #633806; }
+    .btn.full { width: 100%; justify-content: center; padding: 10px 16px; font-size: 13px; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ─── MODAL ─── */
+    .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 50; align-items: center; justify-content: center; padding: 16px; }
+    .modal-bg.show { display: flex; }
+    .modal { background: var(--surface); border-radius: 16px; padding: 22px; width: 100%; max-width: 400px; }
+    .modal h3 { font-size: 15px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .fg { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+    .fg label { font-size: 12px; font-weight: 500; color: var(--muted); }
+    .fg select, .fg input {
+      border: 1px solid var(--border); border-radius: 8px;
+      padding: 9px 12px; font-size: 13px; background: var(--surface);
+      color: var(--text); width: 100%; font-family: inherit;
+    }
+    .fg select:focus, .fg input:focus { outline: none; border-color: var(--green); }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; }
+
+    /* ─── TOAST ─── */
+    .toast {
+      display: none; position: fixed; bottom: 24px; right: 20px;
+      background: var(--text); color: #fff;
+      padding: 12px 18px; border-radius: 10px; font-size: 13px;
+      max-width: 320px; z-index: 99; box-shadow: 0 4px 20px rgba(0,0,0,.25);
+    }
+
+    /* ─── EMPTY STATE ─── */
+    .empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+    .empty i { font-size: 44px; display: block; margin-bottom: 12px; opacity: .4; }
+
+    /* ─── PAGE VIEWS ─── */
+    .pg { display: none; }
+    .pg.active { display: block; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 640px) {
+      .sidebar { position: fixed; top: 0; bottom: 0; left: 0; transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .topbar-menu { display: flex !important; }
+      .bottom-nav  { display: flex; }
+      .content { padding: 14px 14px calc(var(--bottom-h) + 14px); }
+      .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="overlay" id="overlay" onclick="closeSB()"></div>
+
+<div class="shell">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-icon"><i class="ti ti-tool"></i></div>
+      <div><h1>SysPenyelenggaraan</h1><p>Paparan Dalaman</p></div>
+    </div>
+    <div class="sb-user">
+      <div class="avatar av-sv" id="sb-av">ZR</div>
+      <div class="sb-user-info">
+        <p id="sb-name">Mohd Zahairi</p>
+        <span id="sb-role">Penyelia Penyelenggaraan</span>
+      </div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-sec">Utama</div>
+      <button class="sb-item active" onclick="goPage('dashboard', this)"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
+      <button class="sb-item" onclick="goPage('aduan', this)"><i class="ti ti-clipboard-list"></i>Senarai Aduan<span class="cnt" id="cnt-badge">5</span></button>
+      <button class="sb-item" onclick="goPage('aliran', this)"><i class="ti ti-arrows-right"></i>Aliran Kerja</button>
+      <div class="sb-sec">Laporan</div>
+      <button class="sb-item" onclick="goPage('notif', this)"><i class="ti ti-bell"></i>Notifikasi<span class="cnt">3</span></button>
+      <button class="sb-item" onclick="goPage('laporan', this)"><i class="ti ti-chart-bar"></i>Laporan Bulanan</button>
+      <div class="sb-sec">Pentadbiran</div>
+      <button class="sb-item" onclick="goPage('pengguna', this)"><i class="ti ti-users"></i>Pengurusan Pengguna</button>
+    </nav>
+    <div class="sb-foot">
+      <label>Log masuk sebagai:</label>
+      <select onchange="switchUser(this.value)">
+        <option value="sv">Penyelia Penyelenggaraan</option>
+        <option value="tc">Juruteknik</option>
+        <option value="mg">Pengurus Operasi</option>
+        <option value="ad">Pentadbir Sistem</option>
+      </select>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <button class="topbar-menu" onclick="toggleSB()" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+      <h2 id="pg-title">Dashboard</h2>
+      <div class="topbar-actions">
+        <button class="btn" onclick="simulateNew()"><i class="ti ti-refresh"></i><span class="hide-sm">Simulasi</span></button>
+        <button class="btn pri" onclick="window.open('portal-aduan.html','_blank')"><i class="ti ti-external-link"></i><span class="hide-sm">Portal Staff</span></button>
+      </div>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="bn-item active" onclick="goPageBN('dashboard',this)"><i class="ti ti-layout-dashboard"></i>Utama</button>
+  <button class="bn-item" onclick="goPageBN('aduan',this)"><i class="ti ti-clipboard-list"></i>Aduan<span class="dot"></span></button>
+  <button class="bn-item" onclick="goPageBN('aliran',this)"><i class="ti ti-arrows-right"></i>Aliran</button>
+  <button class="bn-item" onclick="goPageBN('notif',this)"><i class="ti ti-bell"></i>Notif<span class="dot"></span></button>
+  <button class="bn-item" onclick="goPageBN('pengguna',this)"><i class="ti ti-user"></i>Profil</button>
+</nav>
+
+<!-- ASSIGN MODAL -->
+<div class="modal-bg" id="modal-assign">
+  <div class="modal">
+    <h3><i class="ti ti-user-check" style="color:var(--green)"></i> Tugaskan Juruteknik</h3>
+    <div class="fg"><label>Tiket</label><input id="m-tiket" readonly style="background:var(--bg)"></div>
+    <div class="fg">
+      <label>Juruteknik / Kontraktor</label>
+      <select id="m-tek">
+        <option>Ali Juruteknik</option>
+        <option>Razif Juruteknik</option>
+        <option>Kontraktor Snowman</option>
+        <option>Kontraktor Aircond</option>
+        <option>Kim Shing</option>
+      </select>
+    </div>
+    <div class="fg"><label>Sasaran siap</label><input type="date" id="m-date"></div>
+    <div class="fg"><label>Catatan (pilihan)</label><input type="text" id="m-note" placeholder="Arahan khas..."></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-assign')">Batal</button>
+      <button class="btn pri" onclick="confirmAssign()"><i class="ti ti-check"></i> Tugaskan</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────────
+const USERS = {
+  sv: { name:'Mohd Zahairi', init:'ZR', role:'Penyelia Penyelenggaraan', cls:'av-sv', pages:['dashboard','aduan','aliran','notif'] },
+  tc: { name:'Ali Juruteknik', init:'AJ', role:'Juruteknik', cls:'av-tc', pages:['dashboard','aduan','aliran','notif'] },
+  mg: { name:'Pn. Haslinda', init:'HL', role:'Pengurus Operasi', cls:'av-mg', pages:['dashboard','aduan','aliran','notif','laporan'] },
+  ad: { name:'Admin Sistem', init:'AD', role:'Pentadbir', cls:'av-ad', pages:['dashboard','aduan','aliran','notif','laporan','pengguna'] },
+};
+let curUser = 'sv';
+let selId   = null;
+
+let aduan = [
+  { id:'ADU-2026-0041', nama:'Siti Aminah', jab:'FP', tel:'012-3456789', item:'Exhaust fan terbakar', lok:'Bilik slaughter FP', perihal:'Motor exhaust fan berbunyi kuat dan berbau hangit.', tarikh:'26/6/26', pri:'Kritikal', status:'Baru', tek:null, masa:'8:42 pg' },
+  { id:'ADU-2026-0042', nama:'Hairul bin Aziz', jab:'CP', tel:'011-9876543', item:'Lampu LED padam — 5 unit', lok:'Lorong penyimpanan CP', perihal:'Lampu padam sejak semalam. Gelap dan bahaya.', tarikh:'26/6/26', pri:'Sederhana', status:'Dalam proses', tek:'Razif Juruteknik', masa:'9:15 pg' },
+  { id:'ADU-2026-0043', nama:'Roslan Mat', jab:'D/S', tel:null, item:'Paip air bocor', lok:'Bilik basuh D/S', perihal:'Air menitik dari paip bawah sinki. Lantai basah.', tarikh:'26/6/26', pri:'Tinggi', status:'Baru', tek:null, masa:'10:03 pg' },
+  { id:'ADU-2026-0044', nama:'Norzaini bt Hassan', jab:'HQ', tel:'013-1122334', item:'Aircond pejabat tidak sejuk', lok:'Pejabat pengurus, tingkat 2', perihal:'Aircond hidup tetapi tidak keluarkan angin sejuk.', tarikh:'26/6/26', pri:'Sederhana', status:'Selesai', tek:'Ali Juruteknik', masa:'10:30 pg' },
+  { id:'ADU-2026-0045', nama:'Zulkarnain Idris', jab:'FP', tel:'019-5544332', item:'Forklift tidak start', lok:'Loading Bay', perihal:'Forklift battery habis, mesin tidak start langsung.', tarikh:'26/6/26', pri:'Tinggi', status:'Baru', tek:null, masa:'11:18 pg' },
+];
+
+const SIM_DATA = [
+  { nama:'Kamarul Ismail', jab:'CP', item:'Sensor suhu tidak berfungsi', lok:'Cold room 3, CP', perihal:'Bacaan suhu tidak tepat.', pri:'Tinggi' },
+  { nama:'Farahani Yusof', jab:'FP', item:'Mesin vacuum rosak', lok:'Stesen pembungkusan FP', perihal:'Mesin vacuum tidak menghisap.', pri:'Kritikal' },
+  { nama:'Razman Che Mat', jab:'D/S', item:'Pintu kolam air panas bocor', lok:'Kolam celup D/S', perihal:'Air meresap keluar dari pintu kolam.', pri:'Sederhana' },
+];
+let simIdx = 0, simCount = 45;
+
+// ─── STRIP COLOURS ───────────────────────────────────────────
+const STRIP = { Kritikal:'strip-k', Tinggi:'strip-t', Sederhana:'strip-s', Rendah:'strip-r' };
+const PRI_E = { Kritikal:'🚨', Tinggi:'🔴', Sederhana:'🟡', Rendah:'🟢' };
+
+// ─── RENDER HELPERS ──────────────────────────────────────────
+function badgeHtml(s) {
+  if (s === 'Selesai')     return `<span class="badge selesai"><i class="ti ti-circle-check"></i> Selesai</span>`;
+  if (s === 'Dalam proses') return `<span class="badge prog"><i class="ti ti-loader"></i> Dalam proses</span>`;
+  return `<span class="badge baru new-pulse">⚡ Baru</span>`;
+}
+
+// ─── PAGES ───────────────────────────────────────────────────
+function renderDashboard() {
+  const baru  = aduan.filter(a => a.status === 'Baru').length;
+  const prog  = aduan.filter(a => a.status === 'Dalam proses').length;
+  const done  = aduan.filter(a => a.status === 'Selesai').length;
+  return `
+  <div class="stat-grid">
+    <div class="sc red"><div class="n">${baru}</div><div class="l">Belum ditindak</div></div>
+    <div class="sc amber"><div class="n">${prog}</div><div class="l">Dalam proses</div></div>
+    <div class="sc green"><div class="n">${done}</div><div class="l">Selesai hari ini</div></div>
+    <div class="sc"><div class="n">${aduan.length}</div><div class="l">Jumlah keseluruhan</div></div>
+  </div>
+  <p style="font-size:13px;font-weight:600;margin-bottom:12px">Aduan terbaru</p>
+  <div class="aduan-list">
+    ${aduan.slice(0,4).map(a => renderCard(a)).join('')}
+  </div>`;
+}
+
+function renderAduan() {
+  const fs = document.getElementById('fil-s')?.value || '';
+  const fp = document.getElementById('fil-p')?.value || '';
+  const fj = document.getElementById('fil-j')?.value || '';
+  let list = aduan.filter(a =>
+    (!fs || a.status === fs) && (!fp || a.pri === fp) && (!fj || a.jab === fj)
+  ).sort((a, b) => {
+    const so = { Baru:0,'Dalam proses':1,Selesai:2 };
+    const po = { Kritikal:0,Tinggi:1,Sederhana:2,Rendah:3 };
+    return (so[a.status] - so[b.status]) || (po[a.pri] - po[b.pri]);
+  });
+  if (!list.length) return `<div class="empty"><i class="ti ti-mood-happy"></i><p>Tiada aduan mengikut tapisan ini.</p></div>`;
+  return list.map(a => renderCard(a)).join('');
+}
+
+function renderCard(a) {
+  return `
+  <div class="acard ${a._new ? 'flash' : ''}" id="card-${a.id}">
+    <div class="acard-strip ${STRIP[a.pri] || 'strip-s'}"></div>
+    <div class="acard-top">
+      <h4>${a.item}</h4>
+      ${badgeHtml(a.status)}
+    </div>
+    <div class="meta">
+      <span class="tag"><i class="ti ti-map-pin" style="font-size:12px"></i>${a.lok}</span>
+      <span class="tag"><i class="ti ti-building" style="font-size:12px"></i>${a.jab}</span>
+      <span class="tag">${PRI_E[a.pri]} ${a.pri}</span>
+      <span class="tag"><i class="ti ti-clock" style="font-size:12px"></i>${a.masa}</span>
+      ${a.tek ? `<span class="tag"><i class="ti ti-user" style="font-size:12px"></i>${a.tek}</span>` : ''}
+    </div>
+    <p class="acard-desc">${a.perihal}</p>
+    <div class="acard-footer">
+      <div class="acard-footer-info">
+        <i class="ti ti-user" style="font-size:12px"></i> ${a.nama}${a.tel ? ' · ' + a.tel : ''}
+        &nbsp;·&nbsp;<span style="font-family:monospace">${a.id}</span>
+      </div>
+      <div class="acard-actions">
+        ${a.status === 'Baru' ? `<button class="btn pri" onclick="openAssign('${a.id}')"><i class="ti ti-user-check"></i> Tugaskan</button>` : ''}
+        ${a.status === 'Dalam proses' ? `<button class="btn warn" onclick="markDone('${a.id}')"><i class="ti ti-check"></i> Selesai</button>` : ''}
+        <button class="btn" onclick="toast('📲 Notifikasi dihantar kepada ${a.nama}')"><i class="ti ti-send"></i> Maklum</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderAliran() {
+  const belum = aduan.filter(a => a.status === 'Baru');
+  const prog  = aduan.filter(a => a.status === 'Dalam proses');
+  const done  = aduan.filter(a => a.status === 'Selesai');
+  return `
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+    <div class="sc red"><div class="n">${belum.length}</div><div class="l">Menunggu tugasan</div></div>
+    <div class="sc amber"><div class="n">${prog.length}</div><div class="l">Sedang dibaiki</div></div>
+    <div class="sc green"><div class="n">${done.length}</div><div class="l">Selesai</div></div>
+  </div>
+  <p style="font-size:13px;font-weight:600;margin-bottom:10px">Perlu tugaskan juruteknik</p>
+  <div class="aduan-list" style="margin-bottom:20px">${belum.map(a => renderCard(a)).join('') || '<div class="empty"><i class="ti ti-check"></i><p>Tiada aduan menunggu tugasan.</p></div>'}</div>
+  <p style="font-size:13px;font-weight:600;margin-bottom:10px">Dalam proses — menunggu pengesahan</p>
+  <div class="aduan-list">${prog.map(a => renderCard(a)).join('') || '<div class="empty"><i class="ti ti-check"></i><p>Tiada.</p></div>'}</div>`;
+}
+
+function renderLaporan() {
+  return `
+  <div class="stat-grid">
+    <div class="sc red"><div class="n">47</div><div class="l">Aduan Jun</div></div>
+    <div class="sc amber"><div class="n">64</div><div class="l">Aduan Mei</div></div>
+    <div class="sc green"><div class="n">38%</div><div class="l">Kadar selesai Jun</div></div>
+    <div class="sc"><div class="n">3.2</div><div class="l">Purata hari selesai</div></div>
+  </div>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px">
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead><tr style="background:var(--bg)">
+        <th style="padding:10px 14px;text-align:left;font-size:11px;color:var(--muted);text-transform:uppercase">Kategori</th>
+        <th style="padding:10px 14px;text-align:center;font-size:11px;color:var(--muted);text-transform:uppercase">Jumlah</th>
+        <th style="padding:10px 14px;text-align:center;font-size:11px;color:var(--muted);text-transform:uppercase">Selesai</th>
+        <th style="padding:10px 14px;text-align:center;font-size:11px;color:var(--muted);text-transform:uppercase">Kadar</th>
+      </tr></thead>
+      <tbody>
+        ${[['Elektrikal','14','8','57%','prog'],['Mekanikal','12','5','42%','baru'],['Penyejukan','8','3','38%','baru'],['Paip / Plumbing','7','5','71%','selesai'],['Lain-lain','6','4','67%','selesai']]
+          .map(([k,j,s,pc,cls]) => `<tr style="border-top:1px solid var(--border)">
+            <td style="padding:10px 14px">${k}</td>
+            <td style="padding:10px 14px;text-align:center;font-weight:600">${j}</td>
+            <td style="padding:10px 14px;text-align:center">${s}</td>
+            <td style="padding:10px 14px;text-align:center"><span class="badge ${cls}">${pc}</span></td>
+          </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>
+  <button class="btn pri full"><i class="ti ti-download"></i> Eksport Laporan PDF</button>`;
+}
+
+function renderNotif() {
+  const notifs = [
+    { dot:'var(--red)',   text:'Kritikal: Exhaust fan FP tiada juruteknik ditugaskan', sub:'ADU-2026-0041 · 26 Jun 2026' },
+    { dot:'var(--red)',   text:'Kritikal: Paip air bocor D/S belum ada tindakan', sub:'ADU-2026-0043 · 26 Jun 2026' },
+    { dot:'var(--amber)', text:'5 item tunggu pembelian melebihi 30 hari', sub:'DEPC · Sistem' },
+    { dot:'var(--blue)',  text:'Laporan bulanan Jun perlu diserahkan sebelum 5 Julai 2026', sub:'Peringatan sistem' },
+    { dot:'#639922',      text:'ADU-2026-0044 Aircond pejabat HQ — disahkan selesai', sub:'26 Jun 2026' },
+  ];
+  return `<p style="font-size:13px;font-weight:600;margin-bottom:12px">Notifikasi terkini</p>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    ${notifs.map(n => `
+    <div style="display:flex;gap:12px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:10px">
+      <div style="width:9px;height:9px;border-radius:50%;background:${n.dot};margin-top:4px;flex-shrink:0"></div>
+      <div><p style="font-size:13px">${n.text}</p><span style="font-size:11px;color:var(--faint)">${n.sub}</span></div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function renderPengguna() {
+  const roles = [
+    { init:'AD', cls:'av-ad', title:'Pentadbir Sistem', level:'Level 4', lbg:'var(--purple-lt)', ltx:'var(--purple)', desc:'Akses penuh — urus semua pengguna, tetapan, laporan.', yes:['Urus pengguna & akses','Eksport semua laporan','Tetapan sistem','Lulus semua peringkat'], no:[] },
+    { init:'MG', cls:'av-mg', title:'Pengurus Operasi', level:'Level 3', lbg:'var(--amber-lt)', ltx:'#633806', desc:'Lihat semua aduan, lulus pembelian, kelulusan akhir.', yes:['Lihat semua aduan & laporan','Lulus permintaan pembelian','Kelulusan akhir aduan'], no:['Tambah / ubah rekod aduan'] },
+    { init:'SV', cls:'av-sv', title:'Penyelia Penyelenggaraan', level:'Level 2', lbg:'var(--green-lt)', ltx:'var(--green-dk)', desc:'Urus aduan harian, tugaskan teknk, sahkan selesai.', yes:['Tambah & edit aduan','Tugaskan juruteknik','Sahkan selesai (peringkat 1)'], no:['Lulus pembelian / kelulusan akhir'] },
+    { init:'JT', cls:'av-tc', title:'Juruteknik', level:'Level 1', lbg:'var(--blue-lt)', ltx:'var(--blue)', desc:'Lihat tugasan sendiri, kemaskini status, lampir gambar.', yes:['Lihat tugasan diberikan','Kemaskini status & tindakan','Lampirkan gambar / dokumen'], no:['Lihat aduan pengguna lain'] },
+  ];
+  return `<p style="font-size:13px;font-weight:600;margin-bottom:12px">Peringkat akses mengikut jawatan</p>
+  <div style="display:flex;flex-direction:column;gap:10px">
+    ${roles.map(r => `
+    <div style="background:var(--surface);border:1px solid var(--border);border-left:4px solid ${r.ltx};border-radius:12px;padding:16px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap">
+        <div class="avatar ${r.cls}">${r.init}</div>
+        <strong style="font-size:14px">${r.title}</strong>
+        <span style="font-size:11px;padding:2px 10px;border-radius:99px;background:${r.lbg};color:${r.ltx};font-weight:600">${r.level}</span>
+      </div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:10px">${r.desc}</p>
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:4px">
+        ${r.yes.map(x => `<li style="font-size:12px;display:flex;align-items:center;gap:6px"><i class="ti ti-check" style="color:var(--green);font-size:14px"></i>${x}</li>`).join('')}
+        ${r.no.map(x  => `<li style="font-size:12px;display:flex;align-items:center;gap:6px;text-decoration:line-through;color:var(--faint)"><i class="ti ti-x" style="color:var(--red);font-size:14px"></i>${x}</li>`).join('')}
+      </ul>
+    </div>`).join('')}
+  </div>`;
+}
+
+// ─── NAVIGATION ──────────────────────────────────────────────
+const PAGE_TITLES = { dashboard:'Dashboard', aduan:'Senarai Aduan', aliran:'Aliran Kerja', notif:'Notifikasi', laporan:'Laporan Bulanan', pengguna:'Pengurusan Pengguna' };
+
+function goPage(page, btn) {
+  closeSB();
+  const u = USERS[curUser];
+  document.getElementById('pg-title').textContent = PAGE_TITLES[page] || page;
+  document.querySelectorAll('.sb-item').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  if (!u.pages.includes(page)) {
+    document.getElementById('content').innerHTML = `<div class="empty"><i class="ti ti-lock"></i><p>Akses terhad untuk ${u.role}.</p></div>`;
+    return;
+  }
+
+  let html = '';
+  if (page === 'dashboard') html = renderDashboard();
+  else if (page === 'aduan') html = `
+    <div class="filters">
+      <select id="fil-s" onchange="refreshAduan()"><option value="">Semua status</option><option>Baru</option><option>Dalam proses</option><option>Selesai</option></select>
+      <select id="fil-p" onchange="refreshAduan()"><option value="">Semua keutamaan</option><option>Kritikal</option><option>Tinggi</option><option>Sederhana</option><option>Rendah</option></select>
+      <select id="fil-j" onchange="refreshAduan()"><option value="">Semua bahagian</option><option>FP</option><option>CP</option><option>D/S</option><option>HQ</option></select>
+    </div>
+    <div class="aduan-list" id="aduan-list">${renderAduan()}</div>`;
+  else if (page === 'aliran')   html = renderAliran();
+  else if (page === 'laporan')  html = renderLaporan();
+  else if (page === 'notif')    html = renderNotif();
+  else if (page === 'pengguna') html = renderPengguna();
+
+  document.getElementById('content').innerHTML = html;
+  // update badge count
+  document.getElementById('cnt-badge').textContent = aduan.filter(a => a.status === 'Baru').length;
+}
+
+function refreshAduan() {
+  document.getElementById('aduan-list').innerHTML = renderAduan();
+}
+
+function goPageBN(page, btn) {
+  document.querySelectorAll('.bn-item').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  goPage(page, null);
+}
+
+// ─── ASSIGN ───────────────────────────────────────────────────
+function openAssign(id) {
+  selId = id;
+  const a = aduan.find(x => x.id === id);
+  document.getElementById('m-tiket').value = id + ' — ' + a.item;
+  const d = new Date(); d.setDate(d.getDate() + 3);
+  document.getElementById('m-date').value = d.toISOString().split('T')[0];
+  document.getElementById('modal-assign').classList.add('show');
+}
+function confirmAssign() {
+  const tek = document.getElementById('m-tek').value;
+  const a   = aduan.find(x => x.id === selId);
+  a.status  = 'Dalam proses'; a.tek = tek; a._new = false;
+  closeModal('modal-assign');
+  goPage('aduan', null);
+  toast('✅ ' + tek + ' ditugaskan untuk ' + a.item);
+}
+function markDone(id) {
+  aduan.find(x => x.id === id).status = 'Selesai';
+  goPage('aduan', null);
+  toast('✅ Aduan ' + id + ' ditanda selesai');
+}
+
+// ─── SIMULATE NEW ADUAN ──────────────────────────────────────
+function simulateNew() {
+  const s   = SIM_DATA[simIdx % SIM_DATA.length]; simIdx++; simCount++;
+  const now = new Date();
+  const masa = now.toLocaleTimeString('ms-MY', { hour:'2-digit', minute:'2-digit' });
+  aduan.unshift({ ...s, id:`ADU-2026-${String(simCount).padStart(4,'0')}`, tel:null, tarikh:'26/6/26', status:'Baru', tek:null, masa, _new:true });
+  goPage('aduan', null);
+  toast('📩 Aduan baru masuk: ' + s.item + ' (' + s.jab + ')');
+}
+
+// ─── USER SWITCH ─────────────────────────────────────────────
+function switchUser(v) {
+  curUser = v;
+  const u = USERS[v];
+  document.getElementById('sb-av').textContent  = u.init;
+  document.getElementById('sb-av').className    = 'avatar ' + u.cls;
+  document.getElementById('sb-name').textContent = u.name;
+  document.getElementById('sb-role').textContent = u.role;
+  goPage('dashboard', document.querySelector('.sb-item'));
+}
+
+// ─── SIDEBAR ─────────────────────────────────────────────────
+function toggleSB() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('show'); }
+function closeSB()  { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('show'); }
+
+// ─── MODAL ───────────────────────────────────────────────────
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+// ─── TOAST ───────────────────────────────────────────────────
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.style.display = 'none', 3500);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────
+goPage('dashboard', document.querySelector('.sb-item'));
+const d = new Date(); d.setDate(d.getDate() + 3);
+document.getElementById('m-date').value = d.toISOString().split('T')[0];
+</script>
+</body>
+</html>
