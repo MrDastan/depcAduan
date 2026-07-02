@@ -42,6 +42,8 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Widgets\AduanStatsWidget::class,
                 \App\Filament\Widgets\AduanKritikal::class,
                 \App\Filament\Widgets\AduanChart::class,
+                \App\Filament\Widgets\AnomaliPenyelenggaraanWidget::class,
+                \App\Filament\Widgets\AnomaliJuruteknikWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,

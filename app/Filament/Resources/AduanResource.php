@@ -108,6 +108,10 @@ class AduanResource extends Resource
                             ->label('Tarikh Sasaran Siap'),
                         Forms\Components\DatePicker::make('tarikh_siap')
                             ->label('Tarikh Siap'),
+                        Forms\Components\TextInput::make('anggaran_kos')
+                            ->label('Anggaran Kos (RM)')->numeric()->prefix('RM'),
+                        Forms\Components\TextInput::make('kos_sebenar')
+                            ->label('Kos Sebenar (RM)')->numeric()->prefix('RM'),
                         Forms\Components\Textarea::make('catatan_penyelia')
                             ->label('Catatan Penyelia')->columnSpanFull(),
                         Forms\Components\Textarea::make('tindakan_juruteknik')
@@ -153,6 +157,9 @@ class AduanResource extends Resource
                     ->label('Tarikh Rosak')->date('d/m/Y')->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Dilapor')->dateTime('d/m/Y H:i')->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('kos_sebenar')
+                    ->label('Kos Sebenar')->money('MYR')->placeholder('—')
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('created_at', 'desc')
