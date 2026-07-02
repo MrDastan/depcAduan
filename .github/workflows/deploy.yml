@@ -33,31 +33,31 @@ jobs:
           port:     ${{ secrets.VPS_PORT }}
           script: |
             set -e
-            cd /var/www/depcaduan
+            cd /home/admin/web/depcaduan.delimaholdings.com/private/depcaduan
 
             echo "── Pull kod terbaru ──"
-            git pull origin main
+            sudo -u admin git pull origin main
 
             echo "── Install dependencies ──"
-            composer install --no-dev --optimize-autoloader --no-interaction
+            sudo -u admin composer install --no-dev --optimize-autoloader --no-interaction
 
             echo "── Jalankan migration ──"
-            php artisan migrate --force
+            sudo -u admin php8.3 artisan migrate --force
 
             echo "── Cache ──"
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
-            php artisan event:cache
+            sudo -u admin php8.3 artisan config:cache
+            sudo -u admin php8.3 artisan route:cache
+            sudo -u admin php8.3 artisan view:cache
+            sudo -u admin php8.3 artisan event:cache
 
             echo "── Storage link ──"
-            php artisan storage:link || true
+            sudo -u admin php8.3 artisan storage:link || true
 
             echo "── Permission ──"
-            sudo chown -R www-data:www-data storage bootstrap/cache
-            sudo chmod -R 775 storage bootstrap/cache
+            chown -R admin:admin storage bootstrap/cache
+            chmod -R 775 storage bootstrap/cache
 
             echo "── Restart queue ──"
-            php artisan queue:restart || true
+            sudo -u admin php8.3 artisan queue:restart || true
 
             echo "✅ Deploy berjaya — depcaduan.delimaholdings.com"
