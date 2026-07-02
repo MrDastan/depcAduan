@@ -10,6 +10,42 @@
   <div class="sc"><div class="n">{{ $stats['jumlah'] }}</div><div class="l">Jumlah bulan ini</div></div>
 </div>
 
+@if ($anomaliAduan->isNotEmpty() || $anomaliJuruteknik->isNotEmpty())
+  <p style="font-size:13px;font-weight:600;margin-bottom:12px">Anomali Penyelenggaraan (Masa &amp; Kos)</p>
+  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
+    @forelse ($anomaliAduan as $row)
+      <div style="display:flex;gap:12px;padding:14px;background:#fff;border:1px solid #E2E5EA;border-radius:10px">
+        <div style="width:9px;height:9px;border-radius:50%;background:#E24B4A;margin-top:4px;flex-shrink:0"></div>
+        <div>
+          <p style="font-size:13px">
+            <span style="font-family:monospace">{{ $row['aduan']->no_tiket }}</span>
+            · {{ $row['aduan']->nama_peralatan }}
+            @if($row['aduan']->juruteknik) · {{ $row['aduan']->juruteknik->name }} @endif
+          </p>
+          <span style="font-size:11px;color:#9CA3AF">{{ implode(' | ', $row['sebab']) }}</span>
+        </div>
+      </div>
+    @empty
+      <div class="empty"><i class="ti ti-alert-triangle"></i><p>Tiada anomali masa/kos dikesan.</p></div>
+    @endforelse
+  </div>
+
+  <p style="font-size:13px;font-weight:600;margin-bottom:12px">Anomali Prestasi Juruteknik</p>
+  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:28px">
+    @forelse ($anomaliJuruteknik as $row)
+      <div style="display:flex;gap:12px;padding:14px;background:#fff;border:1px solid #E2E5EA;border-radius:10px">
+        <div style="width:9px;height:9px;border-radius:50%;background:#F97316;margin-top:4px;flex-shrink:0"></div>
+        <div>
+          <p style="font-size:13px">{{ $row['juruteknik']->name }} — kadar lewat {{ $row['kadar'] }}%</p>
+          <span style="font-size:11px;color:#9CA3AF">{{ $row['lewat'] }} lewat drpd {{ $row['jumlah'] }} aduan ditugaskan</span>
+        </div>
+      </div>
+    @empty
+      <div class="empty"><i class="ti ti-user-check"></i><p>Tiada anomali prestasi juruteknik dikesan.</p></div>
+    @endforelse
+  </div>
+@endif
+
 <p style="font-size:13px;font-weight:600;margin-bottom:12px">Aduan terbaru</p>
 <div class="aduan-list">
   @forelse ($terbaru as $a)

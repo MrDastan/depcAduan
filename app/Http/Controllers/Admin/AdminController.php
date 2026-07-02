@@ -6,10 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Aduan;
 use App\Models\NotaAduan;
 use App\Models\User;
+use App\Services\AnomaliPenyelenggaraanService;
 
 class AdminController extends Controller
 {
-    public function dashboard()
+    public function dashboard(AnomaliPenyelenggaraanService $anomaliService)
     {
         $stats = [
             'baru'        => Aduan::where('status', 'Baru')->count(),
@@ -20,7 +21,15 @@ class AdminController extends Controller
 
         $terbaru = Aduan::with('juruteknik')->latest()->take(4)->get();
 
-        return view('admin.dashboard', compact('stats', 'terbaru'));
+        $anomaliAduan = collect();
+        $anomaliJuruteknik = collect();
+
+        if (auth()->user()->can('laporan.view')) {
+            $anomaliAduan = $anomaliService->aduanAnomali();
+            $anomaliJuruteknik = $anomaliService->juruteknikAnomali();
+        }
+
+        return view('admin.dashboard', compact('stats', 'terbaru', 'anomaliAduan', 'anomaliJuruteknik'));
     }
 
     public function notifikasi()
